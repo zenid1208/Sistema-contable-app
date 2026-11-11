@@ -15,28 +15,24 @@ export class GestorDeCostos {
         costo.categoria,
         costo.fecha.toISOString(),
       );
-      console.log(`Costo ${tipo}: "${costo.nombre}" se guardó correctamente.`);
+      return {
+        success: true,
+        message: `Costo ${tipo}: "${costo.nombre}" se guardó correctamente.`,
+      };
     } catch (error) {
-      console.log("Error al guardar el costo: ", error.message);
+      return {
+        success: false,
+        error: error.message,
+      };
     }
   }
 
   mostrarCostos(tipo) {
     const tabla = tipo === "fijo" ? "costos_fijos" : "costos_variables";
-    console.log(`-- Costos ${tipo.toUpperCase()}S --`);
 
     const list = db.prepare(`SELECT * FROM ${tabla}`).all();
 
-    if (list.length === 0) {
-      console.log(`No hay costos ${tipo}s guardados.`);
-      return;
-    }
-
-    list.forEach((costo) => {
-      console.log(
-        `ID: ${costo.id}. Nombre: ${costo.nombre} | Monto: ${costo.monto} Bs | Categoria: ${costo.categoria} | Fecha: ${costo.fecha}`,
-      );
-    });
+    return list;
   }
 
   calcularTotal(tipo) {
@@ -47,13 +43,11 @@ export class GestorDeCostos {
       .get();
 
     const total = resultado.total || 0;
-    console.log(`El gasto total ${tipo} es: ${total} Bs.`);
     return total;
   }
 
   calcularGastototal() {
     const totali = this.calcularTotal(`fijo`) + this.calcularTotal(`variable`);
-    console.log(`El gasto total es: ${totali} Bs`);
     return totali;
   }
 
@@ -67,8 +61,10 @@ export class GestorDeCostos {
             : null;
 
       if (!tabla) {
-        console.log("❌ Tipo de costo no válido. Usa 'fijo' o 'variable'.");
-        return false;
+        return {
+          success: false,
+          message: `No hay datos guardados.`,
+        };
       }
 
       const costo = db
@@ -76,17 +72,23 @@ export class GestorDeCostos {
         .get(id);
 
       if (!costo) {
-        console.log(`No se encontró ningún costo con el ID ${id} en ${tipo}.`);
-        return false;
+        return {
+          success: false,
+          message: `No hay costos guardados.`,
+        };
       }
 
       db.prepare(`DELETE FROM ${tabla} WHERE id = ?`).run(id);
 
-      console.log(`Costo ${tipo} "${costo.nombre}" se eliminó correctamente.`);
-      return true;
+      return {
+        success: true,
+        message: `El costo: ${costo.nombre} se elimino correctamente.`,
+      };
     } catch (error) {
-      console.log("Error al eliminar el costo:", error.message);
-      return false;
+      return {
+        success: false,
+        message: error.message,
+      };
     }
   }
 }
