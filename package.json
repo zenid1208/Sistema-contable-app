@@ -11,6 +11,10 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@tauri-apps/plugin-sql": "^2.6.0",
     "better-sqlite3": "^13.0.3"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.12.4"
   }
 }
