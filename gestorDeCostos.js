@@ -1,14 +1,35 @@
 import db from "./db.js";
+import { validarCosto } from "./src/domain/validarCosto.js";
 
 export class GestorDeCostos {
   constructor() {}
 
   agregarCosto(tipo, costo) {
     try {
-      const tabla = tipo === "fijo" ? "costos_fijos" : "costos_variables";
+      const tabla =
+        tipo === "fijo"
+          ? "costos_fijos"
+          : tipo === "variable"
+            ? "costos_variables"
+            : null;
+
+      if (tabla === null) {
+        return {
+          success: false,
+          message: "El tipo de costo no es válido",
+        };
+      }
+      const validacion = validarCosto(costo.monto);
+      if (validacion !== true) {
+        return {
+          success: false,
+          message: "El costo debe ser un número mayor que cero",
+        };
+      }
       const stmt = db.prepare(
         `INSERT INTO ${tabla} (nombre, monto, categoria, fecha) VALUES (?, ?, ?, ?)`,
       );
+
       stmt.run(
         costo.nombre,
         costo.monto,
@@ -82,7 +103,7 @@ export class GestorDeCostos {
 
       return {
         success: true,
-        message: `El costo: ${costo.nombre} se elimino correctamente.`,
+        message: `El costo ${tabla}: ${costo.nombre} se elimino correctamente.`,
       };
     } catch (error) {
       return {
